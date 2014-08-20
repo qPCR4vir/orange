@@ -32,7 +32,8 @@ METRICS = [
            distance.SpearmanRAbsolute, False),
     Metric("Manhattan", distance.Manhattan, True),
     Metric("Hamming", distance.Hamming, False),
-    Metric("Relief", distance.Relief, False)
+    Metric("Relief", distance.Relief, False),
+    Metric("Scalar Product", distance.ScalarProduct, True)
 ]
 
 
