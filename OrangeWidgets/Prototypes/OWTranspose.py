@@ -67,7 +67,7 @@ def transpose(data, feature_names=None, error_non_continuous="error",
         if isinstance(feature_names, basestring):
             # Name of the feature
             feature_names = domain[feature_names]
-        if isinstance(feature_names, feature.String):
+        if isinstance(feature_names, feature.String) or isinstance(feature_names, feature.Discrete):
             feature_names = [str(inst[feature_names]) for inst in data]
         elif isinstance(feature_names, list):
             # List of names
@@ -78,8 +78,9 @@ def transpose(data, feature_names=None, error_non_continuous="error",
         feature_names = ["F_%s" % (i + 1) for i in range(len(data))]
 
     new_features = map(feature.Continuous, feature_names)
+    #new_features.append()
     labels = [f.attributes.keys() for f in domain.variables]
-    labels = sorted(reduce(set.union, labels, set()))
+    labels = sorted(reduce(set.union, labels, set())) + ["probes",]
 
     new_metas = map(feature.String, labels)
     new_metas = dict((feature.Descriptor.new_meta_id(), m) for m in new_metas)
@@ -91,7 +92,7 @@ def transpose(data, feature_names=None, error_non_continuous="error",
 
     new_data = Orange.data.Table(new_domain)
 
-    for f in attributes:
+    for i,f in enumerate(attributes):
         vals = [float_or_na(inst[f]) for inst in data]
         new_ins = Orange.data.Instance(new_domain, vals)
 
@@ -99,7 +100,9 @@ def transpose(data, feature_names=None, error_non_continuous="error",
             new_ins[key] = str(value)
 
         new_data.append(new_ins)
+        new_data[i][ "probes"]=  f.name  
 
+ 
     for new_f, inst in zip(new_features, data):
         for m in metas:
             mval = inst[m]
@@ -157,6 +160,7 @@ class OWTranspose(OWWidget):
         if data is not None:
             variables = data.domain.variables
             cont_features = [f for f in variables if is_cont(f)]
+            
             non_cont = [f for f in variables if not is_cont(f)]
             info = "Data with %i continuous feature%s\n" \
                     % (len(cont_features), "s" if len(cont_features) > 1 else "")
@@ -169,7 +173,7 @@ class OWTranspose(OWWidget):
             self.info_w.setText(info)
 
             all_vars = data.domain.variables + data.domain.get_metas().values()
-            str_features = [f for f in all_vars if is_string(f)]
+            str_features = [f for f in all_vars if is_string(f) or is_disc(f)]
             str_feature_names = [f.name for f in str_features]
 
             if len(str_feature_names):
